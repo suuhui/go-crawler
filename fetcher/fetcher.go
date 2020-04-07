@@ -7,7 +7,6 @@ import (
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -28,17 +27,18 @@ func Fetch(url string) ([]byte, error) {
 		return nil, fmt.Errorf("wrong status code: %d", resp.StatusCode)
 	}
 
-	e := determineEncoding(resp.Body)
-	reader := transform.NewReader(resp.Body,e.NewDecoder())
+	bufioReader := bufio.NewReader(resp.Body)
+	e := determineEncoding(bufioReader)
+	reader := transform.NewReader(bufioReader, e.NewDecoder())
 	body, err := ioutil.ReadAll(reader)
 	return body, nil
 }
 
-func determineEncoding(r io.Reader) encoding.Encoding {
+func determineEncoding(r *bufio.Reader) encoding.Encoding {
 	//DetermineEncoding会预读1024个byte确定编码
 	//因此直接使用的话，后面会读不到前1024个字节
-	//因此使用Peek读取前1024个字节不会使reader指针前进
-	bytes, err := bufio.NewReader(r).Peek(1024)
+	//因此使用bufio.Peek读取前1024个字节不会使reader指针前进
+	bytes, err := r.Peek(1024)
 	if err != nil {
 		log.Print("determine encode fail, use default encode.")
 		return defaultEncode
