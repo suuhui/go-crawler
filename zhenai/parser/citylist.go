@@ -22,7 +22,6 @@ func ParseCityList(contents []byte) engine.ParseResult {
 			ParseFunc: ParseCity,
 		})
 		result.Items = append(result.Items, string(m[2]))
-		break
 	}
 	return result
 }
