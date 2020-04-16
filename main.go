@@ -9,10 +9,17 @@ import (
 const startUrl = "http://localhost:8080/mock/www.zhenai.com/zhenghun"
 
 func main() {
+	//单任务爬虫
 	//e := engine.SimpleEngine{}
+	//并发爬虫
 	e := engine.ConcurrentEngine{
 		Scheduler:   &scheduler.SimpleScheduler{},
-		WorkerCount: 1,
+		WorkerCount: 10,
+	}
+	//队列并发版爬虫
+	e = engine.ConcurrentEngine{
+		Scheduler:   &scheduler.QueuedScheduler{},
+		WorkerCount: 10,
 	}
 	e.Run(engine.Request{
 		Url:       startUrl,
