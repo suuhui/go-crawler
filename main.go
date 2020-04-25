@@ -6,8 +6,8 @@ import (
 	"crawler/zhenai/parser"
 )
 
-const startUrl = "http://localhost:8080/mock/www.zhenai.com/zhenghun"
-
+//const startUrl = "http://localhost:8080/mock/www.zhenai.com/zhenghun"
+const startUrl = "http://localhost:8080/mock/www.zhenai.com/zhenghun/leshan"
 func main() {
 	//单任务爬虫
 	//e := engine.SimpleEngine{}
@@ -23,6 +23,6 @@ func main() {
 	}
 	e.Run(engine.Request{
 		Url:       startUrl,
-		ParseFunc: parser.ParseCityList,
+		ParseFunc: parser.ParseCity,
 	})
 }

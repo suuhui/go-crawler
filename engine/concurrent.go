@@ -1,8 +1,10 @@
 package engine
 
 import (
+	"crawler/model"
+	"crypto/md5"
+	"encoding/hex"
 	"log"
-	"runtime"
 )
 
 type ConcurrentEngine struct {
@@ -22,6 +24,7 @@ type ReadyNotifier interface {
 	WorkerReady(chan Request)
 }
 
+var foundUrls = make(map[string]bool)
 func (e *ConcurrentEngine) Run(seeds ...Request) {
 	out := make(chan ParseResult)
 
@@ -32,6 +35,7 @@ func (e *ConcurrentEngine) Run(seeds ...Request) {
 	}
 
 	for _, r := range seeds {
+		hasFound(r.Url)
 		e.Scheduler.Submit(r)
 	}
 
@@ -39,14 +43,18 @@ func (e *ConcurrentEngine) Run(seeds ...Request) {
 	for {
 		parseResult := <-out
 		for _, item := range parseResult.Items {
-			log.Printf("Got item #%d %v\n", itemCount, item)
-			itemCount++
+			if _, ok := item.(model.UserProfile); ok {
+				log.Printf("Got profile #%d %v\n", itemCount, item)
+				itemCount++
+			}
 		}
 
 		for _, r := range parseResult.Requests {
+			if hasFound(r.Url) {
+				continue
+			}
 			e.Scheduler.Submit(r)
 		}
-		log.Println("number of goroutine: ", runtime.NumGoroutine())
 	}
 }
 
@@ -63,4 +71,19 @@ func doWork(in chan Request, out chan ParseResult, notifier ReadyNotifier) {
 			out <- parseResult
 		}
 	}()
+}
+
+func hasFound(url string) bool {
+	encodeStr := md5Encode(url)
+	if _, ok := foundUrls[encodeStr]; ok {
+		return true
+	}
+	foundUrls[encodeStr] = true
+	return false
+}
+
+func md5Encode(str string) string {
+	h := md5.New()
+	h.Write([]byte(str))
+	return hex.EncodeToString(h.Sum(nil))
 }
