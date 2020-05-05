@@ -18,14 +18,13 @@ func ParseCity(contents []byte) engine.ParseResult {
 			log.Print("parse city error.", match)
 		}
 		name := string(match[2])
+		url := string(match[1])
 		result.Requests = append(result.Requests, engine.Request{
-			Url:       string(match[1]),
+			Url: url,
 			ParseFunc: func(c []byte) engine.ParseResult {
-				return ParseProfile(c, name)
+				return ParseProfile(url, c, name)
 			},
 		})
-
-		result.Items = append(result.Items, name)
 	}
 
 	cityMatches := cityRe.FindAllSubmatch(contents, -1)

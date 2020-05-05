@@ -2,6 +2,7 @@ package fetcher
 
 import (
 	"bufio"
+	"crawler/config"
 	"fmt"
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding"
@@ -10,11 +11,16 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 )
 
-var defaultEncode = unicode.UTF8
+var (
+	timeLimiter = time.Tick(time.Second / config.FetchQps)
+	defaultEncode = unicode.UTF8
+)
 
 func Fetch(url string) ([]byte, error) {
+	<-timeLimiter
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err

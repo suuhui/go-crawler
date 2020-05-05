@@ -1,15 +1,14 @@
 package engine
 
 import (
-	"crawler/model"
 	"crypto/md5"
 	"encoding/hex"
-	"log"
 )
 
 type ConcurrentEngine struct {
 	Scheduler   Scheduler
 	WorkerCount int
+	ItemChan    chan Item
 }
 
 //如果将Scheduler定义在scheduler中，会导致循环import
@@ -39,14 +38,10 @@ func (e *ConcurrentEngine) Run(seeds ...Request) {
 		e.Scheduler.Submit(r)
 	}
 
-	itemCount := 0
 	for {
 		parseResult := <-out
 		for _, item := range parseResult.Items {
-			if _, ok := item.(model.UserProfile); ok {
-				log.Printf("Got profile #%d %v\n", itemCount, item)
-				itemCount++
-			}
+			e.ItemChan <- item
 		}
 
 		for _, r := range parseResult.Requests {

@@ -13,8 +13,9 @@ var maritalRe = regexp.MustCompile(`<td><span class="label">婚况：</span>([^<
 var educationRe = regexp.MustCompile(`<td><span class="label">学历：</span>([^<]+)</td>`)
 var jobRe = regexp.MustCompile(`<td><span class="label">职业： </span>([^<]+)</td>`)
 var homeRe = regexp.MustCompile(`<td><span class="label">籍贯：</span>([^<]+)</td>`)
+var idRe = regexp.MustCompile(`http://localhost:8080/mock/album.zhenai.com/u/(\d+)`)
 
-func ParseProfile(contents []byte, name string) engine.ParseResult {
+func ParseProfile(url string, contents []byte, name string) engine.ParseResult {
 	user := model.UserProfile{}
 	user.Name = name
 	user.Age = extractString(contents, ageRe)
@@ -24,8 +25,17 @@ func ParseProfile(contents []byte, name string) engine.ParseResult {
 	user.Marital = extractString(contents, maritalRe)
 	user.Job = extractString(contents, jobRe)
 	user.Home = extractString(contents, homeRe)
+
+	matches := idRe.FindSubmatch([]byte(url))
+
+	item := engine.Item{
+		Url: url,
+		Id: string(matches[1]),
+		Payload: user,
+	}
+
 	result := engine.ParseResult{
-		Items: []interface{}{user},
+		Items: []engine.Item{item},
 	}
 	return result
 }
